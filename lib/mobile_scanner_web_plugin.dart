@@ -109,7 +109,7 @@ class MobileScannerWebPlugin {
         // The ONLY consistent way I've found to choose an environment-facing "normal" camera in 100% of cases is to call enumerateDevices and choose the LAST item.
         // Now that is not coded into the spec at all, but in all of my testing (over almost 80 different devices) that is ALWAYS the environment-facing "normal" camera.
         // As always your results may vary.
-        preferredDeviceId = availableDevice.where((element) => element.kind == "videoinput").first?.deviceId as String;
+        preferredDeviceId = availableDevice?.where((element) => element.kind == "videoinput").first?.deviceId as String;
       } catch (err) {
         preferredDeviceId = "";
       }
