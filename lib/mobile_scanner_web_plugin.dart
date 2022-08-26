@@ -98,30 +98,54 @@ class MobileScannerWebPlugin {
 
     // Check if stream is running
     if (_localStream != null) {
-      return {
-        'ViewID': viewID,
-        'videoWidth': video.videoWidth,
-        'videoHeight': video.videoHeight
-      };
+      return {'ViewID': viewID, 'videoWidth': video.videoWidth, 'videoHeight': video.videoHeight};
     }
 
     try {
-      // Check if browser supports multiple camera's and set if supported
-      final Map? capabilities =
-          html.window.navigator.mediaDevices?.getSupportedConstraints();
-      if (capabilities != null && capabilities['facingMode'] as bool) {
-        final constraints = {
-          'video': VideoOptions(
-            facingMode:
-                cameraFacing == CameraFacing.front ? 'user' : 'environment',
-          )
-        };
+      String preferredDeviceId = "";
+      try {
+        final availableDevice = await html.window.navigator.mediaDevices!.enumerateDevices();
+        // https://www.reddit.com/r/javascript/comments/8eg8w5/choosing_cameras_in_javascript_with_the/
+        // The ONLY consistent way I've found to choose an environment-facing "normal" camera in 100% of cases is to call enumerateDevices and choose the LAST item.
+        // Now that is not coded into the spec at all, but in all of my testing (over almost 80 different devices) that is ALWAYS the environment-facing "normal" camera.
+        // As always your results may vary.
+        preferredDeviceId = availableDevice.where((element) => element.kind == "videoinput").last?.deviceId as String;
+      } catch (err) {
+        preferredDeviceId = "";
+      }
 
-        _localStream =
-            await html.window.navigator.mediaDevices?.getUserMedia(constraints);
+      // Check if browser supports multiple camera's and set if supported
+      final Map? capabilities = html.window.navigator.mediaDevices?.getSupportedConstraints();
+      if (capabilities != null && capabilities['facingMode'] as bool) {
+        // Old constraints set up
+        // final constraints = {
+        //   'video': VideoOptions(
+        //     facingMode: cameraFacing == CameraFacing.front ? 'user' : 'environment',
+        //   )
+        // };
+        var constraints = {};
+        if (preferredDeviceId.isEmpty) {
+          constraints = {
+            'video': VideoOptions(
+              facingMode: cameraFacing == CameraFacing.front ? 'user' : 'environment',
+            )
+          };
+        } else {
+          constraints = {
+            "video": {
+              "facingMode": {
+                "exact": cameraFacing == CameraFacing.front ? 'user' : 'environment',
+              },
+              "deviceId": {
+                "ideal": preferredDeviceId,
+              },
+            },
+          };
+        }
+
+        _localStream = await html.window.navigator.mediaDevices?.getUserMedia(constraints);
       } else {
-        _localStream = await html.window.navigator.mediaDevices
-            ?.getUserMedia({'video': true});
+        _localStream = await html.window.navigator.mediaDevices?.getUserMedia({'video': true});
       }
 
       video.srcObject = _localStream;
@@ -139,8 +163,7 @@ class MobileScannerWebPlugin {
       await video.play();
 
       // Then capture a frame to be analyzed every 200 miliseconds
-      _frameInterval =
-          Timer.periodic(const Duration(milliseconds: 200), (timer) {
+      _frameInterval = Timer.periodic(const Duration(milliseconds: 200), (timer) {
         _captureFrame();
       });
 
@@ -157,8 +180,7 @@ class MobileScannerWebPlugin {
 
   /// Check if any camera's are available
   static Future<bool> cameraAvailable() async {
-    final sources =
-        await html.window.navigator.mediaDevices!.enumerateDevices();
+    final sources = await html.window.navigator.mediaDevices!.enumerateDevices();
     for (final e in sources) {
       // TODO:
       // ignore: avoid_dynamic_calls
@@ -191,8 +213,7 @@ class MobileScannerWebPlugin {
   /// Captures a frame and analyzes it for QR codes
   Future<dynamic> _captureFrame() async {
     if (_localStream == null) return null;
-    final canvas =
-        html.CanvasElement(width: video.videoWidth, height: video.videoHeight);
+    final canvas = html.CanvasElement(width: video.videoWidth, height: video.videoHeight);
     final ctx = canvas.context2D;
 
     ctx.drawImage(video, 0, 0);
