@@ -147,7 +147,6 @@ class MobileScannerWebPlugin {
         try {
           _localStream = await html.window.navigator.mediaDevices?.getUserMedia(constraints);
         } catch (_) {
-        } finally {
           _localStream = await html.window.navigator.mediaDevices?.getUserMedia(defaultConstraints);
         }
       } else {
