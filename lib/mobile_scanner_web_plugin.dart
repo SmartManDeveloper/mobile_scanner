@@ -109,7 +109,7 @@ class MobileScannerWebPlugin {
         // The ONLY consistent way I've found to choose an environment-facing "normal" camera in 100% of cases is to call enumerateDevices and choose the LAST item.
         // Now that is not coded into the spec at all, but in all of my testing (over almost 80 different devices) that is ALWAYS the environment-facing "normal" camera.
         // As always your results may vary.
-        preferredDeviceId = availableDevice.where((element) => element.kind == "videoinput").last?.deviceId as String;
+        preferredDeviceId = availableDevice.where((element) => element.kind == "videoinput").first?.deviceId as String;
       } catch (err) {
         preferredDeviceId = "";
       }
@@ -123,14 +123,15 @@ class MobileScannerWebPlugin {
         //     facingMode: cameraFacing == CameraFacing.front ? 'user' : 'environment',
         //   )
         // };
-        var constraints = {};
-        if (preferredDeviceId.isEmpty) {
-          constraints = {
-            'video': VideoOptions(
-              facingMode: cameraFacing == CameraFacing.front ? 'user' : 'environment',
-            )
-          };
-        } else {
+        var defaultConstraints = {};
+        defaultConstraints = {
+          'video': VideoOptions(
+            facingMode: cameraFacing == CameraFacing.front ? 'user' : 'environment',
+          )
+        };
+
+        var constraints = defaultConstraints;
+        if (preferredDeviceId.isNotEmpty) {
           constraints = {
             "video": {
               "facingMode": {
@@ -143,7 +144,12 @@ class MobileScannerWebPlugin {
           };
         }
 
-        _localStream = await html.window.navigator.mediaDevices?.getUserMedia(constraints);
+        try {
+          _localStream = await html.window.navigator.mediaDevices?.getUserMedia(constraints);
+        } catch (_) {
+        } finally {
+          _localStream = await html.window.navigator.mediaDevices?.getUserMedia(defaultConstraints);
+        }
       } else {
         _localStream = await html.window.navigator.mediaDevices?.getUserMedia({'video': true});
       }
