@@ -206,7 +206,7 @@ class MobileScannerWebPlugin {
         }
       });
     } catch (e) {
-      debugPrint('Failed to stop stream: $e');
+      print('Failed to stop stream: $e');
     }
 
     video.srcObject = null;
