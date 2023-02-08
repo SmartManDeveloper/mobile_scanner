@@ -52,7 +52,7 @@ class MobileScanner extends StatefulWidget {
   /// if set barcodes will only be scanned if they fall within this [Rect]
   /// useful for having a cut-out overlay for example. these [Rect]
   /// coordinates are relative to the widget size, so by how much your
-  /// rectangle overlays the actual image can depend on things like the
+  /// rectangle overlays the actual image can depeznd on things like the
   /// [BoxFit]
   final Rect? scanWindow;
 
@@ -81,8 +81,7 @@ class MobileScanner extends StatefulWidget {
   State<MobileScanner> createState() => _MobileScannerState();
 }
 
-class _MobileScannerState extends State<MobileScanner>
-    with WidgetsBindingObserver {
+class _MobileScannerState extends State<MobileScanner> with WidgetsBindingObserver {
   /// The subscription that listens to barcode detection.
   StreamSubscription<BarcodeCapture>? _barcodesSubscription;
 
@@ -106,8 +105,7 @@ class _MobileScannerState extends State<MobileScanner>
           );
     }
 
-    return widget.placeholderBuilder?.call(context, child) ??
-        const ColoredBox(color: Colors.black);
+    return widget.placeholderBuilder?.call(context, child) ?? const ColoredBox(color: Colors.black);
   }
 
   /// Start the given [scanner].
@@ -193,8 +191,7 @@ class _MobileScannerState extends State<MobileScanner>
 
     /// create a new rectangle that represents the texture on the screen
     final minX = widgetSize.width / 2 - fittedTextureSize.destination.width / 2;
-    final minY =
-        widgetSize.height / 2 - fittedTextureSize.destination.height / 2;
+    final minY = widgetSize.height / 2 - fittedTextureSize.destination.height / 2;
     final textureWindow = Offset(minX, minY) & fittedTextureSize.destination;
 
     /// create a new scan window and with only the area of the rect intersecting the texture window
@@ -210,14 +207,10 @@ class _MobileScannerState extends State<MobileScanner>
     final windowInTexture = Rect.fromLTWH(newLeft, newTop, newWidth, newHeight);
 
     /// get the scanWindow as a percentage of the texture
-    final percentageLeft =
-        windowInTexture.left / fittedTextureSize.destination.width;
-    final percentageTop =
-        windowInTexture.top / fittedTextureSize.destination.height;
-    final percentageRight =
-        windowInTexture.right / fittedTextureSize.destination.width;
-    final percentagebottom =
-        windowInTexture.bottom / fittedTextureSize.destination.height;
+    final percentageLeft = windowInTexture.left / fittedTextureSize.destination.width;
+    final percentageTop = windowInTexture.top / fittedTextureSize.destination.height;
+    final percentageRight = windowInTexture.right / fittedTextureSize.destination.width;
+    final percentagebottom = windowInTexture.bottom / fittedTextureSize.destination.height;
 
     /// this rectangle can be send to native code and used to cut out a rectangle of the scan image
     return Rect.fromLTRB(
@@ -262,9 +255,7 @@ class _MobileScannerState extends State<MobileScanner>
                       child: SizedBox(
                         width: value.size.width,
                         height: value.size.height,
-                        child: kIsWeb
-                            ? HtmlElementView(viewType: value.webId!)
-                            : Texture(textureId: value.textureId!),
+                        child: kIsWeb ? HtmlElementView(viewType: value.webId!) : Texture(textureId: value.textureId!),
                       ),
                     ),
                   );

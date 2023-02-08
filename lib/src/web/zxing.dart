@@ -122,8 +122,7 @@ typedef BarcodeDetectionCallback = void Function(
   dynamic error,
 );
 
-extension JsZXingBrowserMultiFormatReaderExt
-    on JsZXingBrowserMultiFormatReader {
+extension JsZXingBrowserMultiFormatReaderExt on JsZXingBrowserMultiFormatReader {
   external Promise<void> decodeFromVideoElementContinuously(
     VideoElement source,
     BarcodeDetectionCallback callbackFn,
@@ -168,15 +167,8 @@ extension JsZXingBrowserMultiFormatReaderExt
   external MediaStream? stream;
 }
 
-const zxingJsLibrary = JsLibrary(
-  contextName: 'ZXing',
-  url: 'https://unpkg.com/@zxing/library@0.19.1',
-  usesRequireJs: true,
-);
-
 /// Barcode reader that uses zxing-js library.
-class ZXingBarcodeReader extends WebBarcodeReaderBase
-    with InternalStreamCreation, InternalTorchDetection {
+class ZXingBarcodeReader extends WebBarcodeReaderBase with InternalStreamCreation, InternalTorchDetection {
   JsZXingBrowserMultiFormatReader? _reader;
 
   ZXingBarcodeReader({required super.videoContainer});
@@ -185,7 +177,7 @@ class ZXingBarcodeReader extends WebBarcodeReaderBase
   bool get isStarted => localMediaStream != null;
 
   @override
-  List<JsLibrary> get jsLibraries => [zxingJsLibrary];
+  List<JsLibrary> get jsLibraries => [];
 
   @override
   Future<void> start({
@@ -196,8 +188,7 @@ class ZXingBarcodeReader extends WebBarcodeReaderBase
     final JsMap? hints;
     if (formats != null && !formats.contains(BarcodeFormat.all)) {
       hints = JsMap();
-      final zxingFormats =
-          formats.map((e) => e.zxingBarcodeFormat).where((e) => e > 0).toList();
+      final zxingFormats = formats.map((e) => e.zxingBarcodeFormat).where((e) => e > 0).toList();
       // set hint DecodeHintType.POSSIBLE_FORMATS
       // https://github.com/zxing-js/library/blob/1e9ccb3b6b28d75b9eef866dba196d8937eb4449/src/core/DecodeHintType.ts#L28
       hints.set(2, zxingFormats);

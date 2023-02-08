@@ -74,23 +74,53 @@ mixin InternalStreamCreation on WebBarcodeReaderBase {
   int get videoHeight => video.videoHeight;
 
   Future<html.MediaStream?> initMediaStream(CameraFacing cameraFacing) async {
+    String preferredDeviceId = "";
+    try {
+      final availableDevice = await html.window.navigator.mediaDevices?.enumerateDevices();
+      // https://www.reddit.com/r/javascript/comments/8eg8w5/choosing_cameras_in_javascript_with_the/
+      // The ONLY consistent way I've found to choose an environment-facing "normal" camera in 100% of cases is to call enumerateDevices and choose the LAST item.
+      // Now that is not coded into the spec at all, but in all of my testing (over almost 80 different devices) that is ALWAYS the environment-facing "normal" camera.
+      // As always your results may vary.
+      preferredDeviceId = availableDevice?.where((element) => element.kind == "videoinput").last?.deviceId as String;
+    } catch (err) {
+      preferredDeviceId = "";
+    }
+
     // Check if browser supports multiple camera's and set if supported
-    final Map? capabilities =
-        html.window.navigator.mediaDevices?.getSupportedConstraints();
-    final Map<String, dynamic> constraints;
+    final Map? capabilities = html.window.navigator.mediaDevices?.getSupportedConstraints();
+    html.MediaStream? localStream;
     if (capabilities != null && capabilities['facingMode'] as bool) {
-      constraints = {
+      var defaultConstraints = {};
+      defaultConstraints = {
         'video': VideoOptions(
-          facingMode:
-              cameraFacing == CameraFacing.front ? 'user' : 'environment',
+          facingMode: cameraFacing == CameraFacing.front ? 'user' : 'environment',
         )
       };
+
+      var constraints = defaultConstraints;
+      if (preferredDeviceId.isNotEmpty) {
+        constraints = {
+          "video": {
+            "facingMode": {
+              "exact": cameraFacing == CameraFacing.front ? 'user' : 'environment',
+            },
+            "deviceId": {
+              "ideal": preferredDeviceId,
+            },
+          },
+        };
+      }
+
+      try {
+        localStream = await html.window.navigator.mediaDevices?.getUserMedia(constraints);
+      } catch (_) {
+        localStream = await html.window.navigator.mediaDevices?.getUserMedia(defaultConstraints);
+      }
     } else {
-      constraints = {'video': true};
+      localStream = await html.window.navigator.mediaDevices?.getUserMedia({'video': true});
     }
-    final stream =
-        await html.window.navigator.mediaDevices?.getUserMedia(constraints);
-    return stream;
+
+    return localStream;
   }
 
   void prepareVideoElement(html.VideoElement videoSource);
