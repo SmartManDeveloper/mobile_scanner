@@ -27,7 +27,7 @@ class JsLibrary {
 
 abstract class WebBarcodeReaderBase {
   /// Timer used to capture frames to be analyzed
-  Duration frameInterval = const Duration(milliseconds: 200);
+  Duration frameInterval = const Duration(milliseconds: 500);
   final html.DivElement videoContainer;
 
   WebBarcodeReaderBase({
@@ -104,16 +104,19 @@ mixin InternalStreamCreation on WebBarcodeReaderBase {
             "facingMode": {
               "exact": cameraFacing == CameraFacing.front ? 'user' : 'environment',
             },
+            "width": {
+              "min": 1280,
+            },
             "deviceId": {
               "ideal": preferredDeviceId,
             },
-          },
+          }
         };
       }
 
       try {
         localStream = await html.window.navigator.mediaDevices?.getUserMedia(constraints);
-      } catch (_) {
+      } catch (err) {
         localStream = await html.window.navigator.mediaDevices?.getUserMedia(defaultConstraints);
       }
     } else {
