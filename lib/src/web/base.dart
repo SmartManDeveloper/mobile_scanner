@@ -74,6 +74,9 @@ mixin InternalStreamCreation on WebBarcodeReaderBase {
   int get videoHeight => video.videoHeight;
 
   Future<html.MediaStream?> initMediaStream(CameraFacing cameraFacing) async {
+    video.autoplay = true;
+    video.defaultMuted = true;
+
     String preferredDeviceId = "";
     try {
       final availableDevice = await html.window.navigator.mediaDevices?.enumerateDevices();
