@@ -38,7 +38,7 @@ class MobileScannerWebPlugin {
   // ID of the video feed
   String viewID = 'WebScanner-${DateTime.now().millisecondsSinceEpoch}';
 
-  static final html.DivElement vidDiv = html.DivElement();
+  static final html.DivElement vidDiv = html.DivElement()..style.setProperty('object-fit', 'cover');
 
   /// Represents barcode reader library.
   /// Change this property if you want to use a custom implementation.

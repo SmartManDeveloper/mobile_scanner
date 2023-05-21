@@ -77,6 +77,13 @@ mixin InternalStreamCreation on WebBarcodeReaderBase {
     video.autoplay = true;
     video.defaultMuted = true;
 
+    video.style
+      ..transformOrigin = 'center'
+      ..objectFit = 'cover'
+      ..pointerEvents = 'none'
+      ..width = '100%'
+      ..height = '100%';
+
     String preferredDeviceId = "";
     try {
       final availableDevice = await html.window.navigator.mediaDevices?.enumerateDevices();
