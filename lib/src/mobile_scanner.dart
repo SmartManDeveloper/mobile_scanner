@@ -245,33 +245,27 @@ class _MobileScannerState extends State<MobileScanner> with WidgetsBindingObserv
               _controller.updateScanWindow(scanWindow);
             }
 
-            return AspectRatio(
-              aspectRatio: value.size.width / value.size.height,
-              child: Stack(
-                fit: StackFit.expand,
-                children: <Widget>[
-                  HtmlElementView(viewType: value.webId!),
-                ],
+            if (kIsWeb) {
+              return HtmlElementView(viewType: value.webId!);
+            }
+
+            return ClipRect(
+              child: LayoutBuilder(
+                builder: (_, constraints) {
+                  return SizedBox.fromSize(
+                    size: constraints.biggest,
+                    child: FittedBox(
+                      fit: widget.fit,
+                      child: SizedBox(
+                        width: value.size.width,
+                        height: value.size.height,
+                        child: Texture(textureId: value.textureId!),
+                      ),
+                    ),
+                  );
+                },
               ),
             );
-
-            // return ClipRect(
-            //   child: LayoutBuilder(
-            //     builder: (_, constraints) {
-            //       return SizedBox.fromSize(
-            //         size: constraints.biggest,
-            //         child: FittedBox(
-            //           fit: widget.fit,
-            //           child: SizedBox(
-            //             width: value.size.width,
-            //             height: value.size.height,
-            //             child: kIsWeb ? HtmlElementView(viewType: value.webId!) : Texture(textureId: value.textureId!),
-            //           ),
-            //         ),
-            //       );
-            //     },
-            //   ),
-            // );
           },
         );
       },
