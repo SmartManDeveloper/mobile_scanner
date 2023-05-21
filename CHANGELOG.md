@@ -1,7 +1,41 @@
-## Next
+## 3.2.1
+Bugs fixed:
+* [Android] Fix Gradle 8 compatibility by adding the `namespace` attribute to the build.gradle.
+
+## 3.2.0
+Improvements:
+* [iOS] Updated GoogleMLKit/BarcodeScanning to 4.0.0 
+* [Android] Updated com.google.mlkit:barcode-scanning from 17.0.3 to 17.1.0
+
+Bugs fixed:
+* Fixed onDetect not working with analyzeImage when autoStart is false in MobileScannerController
+* [iOS] Explicit returned type for compactMap
+
+## 3.1.1
+Bugs fixed:
+* [iOS] Fixed a bug that caused a crash when switching from camera.
+
+## 3.1.0
+Improvements:
+* [iOS] No longer automatically focus on faces.
+* [iOS] Fixed build error.
+* [Web] Waiting for js libs to load.
+* Do not returnImage if not specified.
+* Added raw data in barcode object.
+* Fixed several bugs.
+
+## 3.0.0
+This big release contains all improvements from the beta releases.
+In addition to that, this release contains:
 
 Improvements:
-* [Web] Automatically inject js libraries
+* Fixed an issue in which the scanner would freeze if two scanner widgets where placed in a page view,
+and the paged was swiped. An example has been added in the example app.
+You need to set startDelay: true if used in a page view.
+* [Web] Automatically inject js libraries.
+* [macOS] The minimum build version is now macOS 10.14 in according to the latest Flutter version.
+* [Android] Fixed an issue in which the scanWindow would remain even after disposing the scanner.
+* Updated dependencies.
 
 ## 3.0.0-beta.4
 Fixes:

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-
+// ignore: unnecessary_import
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -84,6 +85,9 @@ class MobileScannerController {
   late final ValueNotifier<CameraFacing> cameraFacingState =
       ValueNotifier(facing);
 
+  /// A notifier that provides zoomScale.
+  final ValueNotifier<double> zoomScaleState = ValueNotifier(0.0);
+
   bool isStarting = false;
 
   /// A notifier that provides availability of the Torch (Flash)
@@ -129,7 +133,7 @@ class MobileScannerController {
         arguments['formats'] = formats!.map((e) => e.index).toList();
       }
     }
-    arguments['returnImage'] = true;
+    arguments['returnImage'] = returnImage;
     return arguments;
   }
 
@@ -149,12 +153,11 @@ class MobileScannerController {
       return null;
     }
 
-    isStarting = true;
-
-    events?.cancel();
-    events = _eventChannel
+    events ??= _eventChannel
         .receiveBroadcastStream()
         .listen((data) => _handleEvent(data as Map));
+
+    isStarting = true;
 
     // Check authorization status
     if (!kIsWeb) {
@@ -293,6 +296,10 @@ class MobileScannerController {
   ///
   /// [path] The path of the image on the devices
   Future<bool> analyzeImage(String path) async {
+    events ??= _eventChannel
+        .receiveBroadcastStream()
+        .listen((data) => _handleEvent(data as Map));
+
     return _methodChannel
         .invokeMethod<bool>('analyzeImage', path)
         .then<bool>((bool? value) => value ?? false);
@@ -314,6 +321,11 @@ class MobileScannerController {
     await _methodChannel.invokeMethod('setScale', zoomScale);
   }
 
+  /// Reset the zoomScale of the camera to use standard scale 1x.
+  Future<void> resetZoomScale() async {
+    await _methodChannel.invokeMethod('resetScale');
+  }
+
   /// Disposes the MobileScannerController and closes all listeners.
   ///
   /// If you call this, you cannot use this controller object anymore.
@@ -333,6 +345,9 @@ class MobileScannerController {
         final state = TorchState.values[data as int? ?? 0];
         torchState.value = state;
         break;
+      case 'zoomScaleState':
+        zoomScaleState.value = data as double? ?? 0.0;
+        break;
       case 'barcode':
         if (data == null) return;
         final parsed = (data as List)
@@ -340,6 +355,7 @@ class MobileScannerController {
             .toList();
         _barcodesController.add(
           BarcodeCapture(
+            raw: data,
             barcodes: parsed,
             image: event['image'] as Uint8List?,
             width: event['width'] as double?,
@@ -350,6 +366,7 @@ class MobileScannerController {
       case 'barcodeMac':
         _barcodesController.add(
           BarcodeCapture(
+            raw: data,
             barcodes: [
               Barcode(
                 rawValue: (data as Map)['payload'] as String?,
@@ -362,6 +379,7 @@ class MobileScannerController {
         final barcode = data as Map?;
         _barcodesController.add(
           BarcodeCapture(
+            raw: data,
             barcodes: [
               if (barcode != null)
                 Barcode(

@@ -38,7 +38,7 @@ public class SwiftMobileScannerPlugin: NSObject, FlutterPlugin {
     init(barcodeHandler: BarcodeHandler, registry: FlutterTextureRegistry) {
         self.mobileScanner = MobileScanner(registry: registry, mobileScannerCallback: { barcodes, error, image in
             if barcodes != nil {
-                let barcodesMap = barcodes!.compactMap { barcode in
+                let barcodesMap: [Any?] = barcodes!.compactMap { barcode in
                     if (SwiftMobileScannerPlugin.scanWindow != nil) {
                         if (SwiftMobileScannerPlugin.isBarcodeInScanWindow(barcode: barcode, imageSize: image.size)) {
                             return barcode.data
@@ -57,6 +57,8 @@ public class SwiftMobileScannerPlugin: NSObject, FlutterPlugin {
             }
         }, torchModeChangeCallback: { torchState in
             barcodeHandler.publishEvent(["name": "torchState", "data": torchState])
+        }, zoomScaleChangeCallback: { zoomScale in
+            barcodeHandler.publishEvent(["name": "zoomScaleState", "data": zoomScale])
         })
         self.barcodeHandler = barcodeHandler
         super.init()
@@ -85,6 +87,8 @@ public class SwiftMobileScannerPlugin: NSObject, FlutterPlugin {
             analyzeImage(call, result)
         case "setScale":
             setScale(call, result)
+        case "resetScale":
+            resetScale(call, result)
         case "updateScanWindow":
             updateScanWindow(call, result)
         default:
@@ -187,7 +191,28 @@ public class SwiftMobileScannerPlugin: NSObject, FlutterPlugin {
         }
         result(nil)
     }
-    
+
+    /// Reset the zoomScale
+    private func resetScale(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+        do {
+            try mobileScanner.resetScale()
+        } catch MobileScannerError.zoomWhenStopped {
+            result(FlutterError(code: "MobileScanner",
+                                message: "Called resetScale() while stopped!",
+                                details: nil))
+        } catch MobileScannerError.zoomError(let error) {
+            result(FlutterError(code: "MobileScanner",
+                                message: "Error while zooming.",
+                                details: error))
+        } catch {
+            result(FlutterError(code: "MobileScanner",
+                                message: "Error while zooming.",
+                                details: nil))
+        }
+        result(nil)
+    }
+
+
     /// Toggles the torch
     func updateScanWindow(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         let scanWindowData: Array? = (call.arguments as? [String: Any])?["rect"] as? [CGFloat]
@@ -220,16 +245,19 @@ public class SwiftMobileScannerPlugin: NSObject, FlutterPlugin {
                                 details: nil))
             return
         }
+
         mobileScanner.analyzeImage(image: uiImage!, position: AVCaptureDevice.Position.back, callback: { [self] barcodes, error in
-            if error == nil && barcodes != nil {
-                for barcode in barcodes! {
-                    let event: [String: Any?] = ["name": "barcode", "data": barcode.data]
-                    barcodeHandler.publishEvent(event)
+            if error == nil && barcodes != nil && !barcodes!.isEmpty {
+                let barcodesMap: [Any?] = barcodes!.compactMap { barcode in barcode.data }
+                let event: [String: Any?] = ["name": "barcode", "data": barcodesMap]
+                barcodeHandler.publishEvent(event)
+                result(true)
+            } else {
+                if error != nil {
+                    barcodeHandler.publishEvent(["name": "error", "message": error?.localizedDescription])
                 }
-            } else if error != nil {
-                barcodeHandler.publishEvent(["name": "error", "message": error?.localizedDescription])
+                result(false)
             }
         })
-        result(nil)
     }
 }
