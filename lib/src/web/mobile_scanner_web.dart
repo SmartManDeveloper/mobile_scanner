@@ -17,6 +17,7 @@ import 'package:mobile_scanner/src/web/barcode_reader.dart';
 import 'package:mobile_scanner/src/web/media_track_extension.dart';
 import 'package:mobile_scanner/src/web/zxing/zxing_barcode_reader.dart';
 import 'package:web/web.dart';
+import 'package:mobile_scanner/src/web/javascript_map.dart';
 
 /// A web implementation of the MobileScannerPlatform of the MobileScanner plugin.
 class MobileScannerWeb extends MobileScannerPlatform {
@@ -169,6 +170,32 @@ class MobileScannerWeb extends MobileScannerPlatform {
     }
 
     try {
+      // force video capture
+
+      try {
+        final JSMap holo = JSMap();
+        holo.set("name".toJS, "camera".toJS);
+
+        final PermissionStatus result =
+            await window.navigator.permissions.query({"name": "camera"}.jsify() as JSObject).toDart;
+        print("Permission status before forece");
+        print(result.state.toString());
+      } catch (err) {
+        print("ERROR");
+      }
+
+      print("force video capture");
+      MediaStream mediaStream =
+          await window.navigator.mediaDevices.getUserMedia(MediaStreamConstraints(video: true.toJS)).toDart;
+
+      final List<MediaStreamTrack>? tracks = mediaStream?.getVideoTracks().toDart;
+      tracks?.forEach((track) => track.stop());
+
+      final PermissionStatus result2 =
+          await window.navigator.permissions.query({"name": "camera"}.jsify() as JSObject).toDart;
+      print("Permission status after forece");
+      print(result2.state.toString());
+
       String preferredDeviceId = "";
       try {
         final availableDeviceJs = await window.navigator.mediaDevices.enumerateDevices().toDart;
