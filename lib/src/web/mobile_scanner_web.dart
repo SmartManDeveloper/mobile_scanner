@@ -177,20 +177,20 @@ class MobileScannerWeb extends MobileScannerPlatform {
       final List<MediaStreamTrack>? tracks = mediaStream?.getVideoTracks().toDart;
       tracks?.forEach((track) => track.stop());
 
-      String preferredDeviceId = "";
-      try {
-        final availableDeviceJs = await window.navigator.mediaDevices.enumerateDevices().toDart;
-        final List<MediaDeviceInfo> availableDeviceDart = availableDeviceJs.toDart;
-        // https://www.reddit.com/r/javascript/comments/8eg8w5/choosing_cameras_in_javascript_with_the/
-        // The ONLY consistent way I've found to choose an environment-facing "normal" camera in 100% of cases is to call enumerateDevices and choose the LAST item.
-        // Now that is not coded into the spec at all, but in all of my testing (over almost 80 different devices) that is ALWAYS the environment-facing "normal" camera.
-        // As always your results may vary.
-
-        preferredDeviceId =
-            availableDeviceDart.where((element) => element.kind == "videoinput").last.deviceId as String;
-      } catch (err) {
-        preferredDeviceId = "";
-      }
+      // String preferredDeviceId = "";
+      // try {
+      //   final availableDeviceJs = await window.navigator.mediaDevices.enumerateDevices().toDart;
+      //   final List<MediaDeviceInfo> availableDeviceDart = availableDeviceJs.toDart;
+      //   // https://www.reddit.com/r/javascript/comments/8eg8w5/choosing_cameras_in_javascript_with_the/
+      //   // The ONLY consistent way I've found to choose an environment-facing "normal" camera in 100% of cases is to call enumerateDevices and choose the LAST item.
+      //   // Now that is not coded into the spec at all, but in all of my testing (over almost 80 different devices) that is ALWAYS the environment-facing "normal" camera.
+      //   // As always your results may vary.
+      //
+      //   preferredDeviceId =
+      //       availableDeviceDart.where((element) => element.kind == "videoinput").last.deviceId as String;
+      // } catch (err) {
+      //   preferredDeviceId = "";
+      // }
 
       // Check if browser supports multiple camera's and set if supported
       final MediaTrackSupportedConstraints capabilities = window.navigator.mediaDevices.getSupportedConstraints();
@@ -208,19 +208,19 @@ class MobileScannerWeb extends MobileScannerPlatform {
           ),
         );
 
-        MediaStreamConstraints constraints = defaultConstraints;
+        final MediaStreamConstraints constraints = defaultConstraints;
 
-        if (preferredDeviceId.isNotEmpty) {
-          constraints = MediaStreamConstraints(
-            video: MediaTrackConstraintSet(
-              facingMode: facingMode.toJS,
-              width: 1280.toJS,
-              // deviceId: ConstrainDOMStringParameters(
-              //   ideal: preferredDeviceId.toJS,
-              // ),
-            ),
-          );
-        }
+        // if (preferredDeviceId.isNotEmpty) {
+        //   constraints = MediaStreamConstraints(
+        //     video: MediaTrackConstraintSet(
+        //       facingMode: facingMode.toJS,
+        //       width: 1280.toJS,
+        //       deviceId: ConstrainDOMStringParameters(
+        //         ideal: preferredDeviceId.toJS,
+        //       ),
+        //     ),
+        //   );
+        // }
 
         try {
           localStream = await window.navigator.mediaDevices.getUserMedia(constraints).toDart;
