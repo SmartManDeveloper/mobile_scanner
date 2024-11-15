@@ -200,6 +200,8 @@ class MobileScannerWeb extends MobileScannerPlatform {
           print("device LABEL");
           print(device.label);
           print(device.kind);
+          print(device.deviceId);
+          print("device finish");
         }
 
         preferredDeviceId =
