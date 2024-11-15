@@ -232,11 +232,12 @@ class MobileScannerWeb extends MobileScannerPlatform {
         if (preferredDeviceId.isNotEmpty) {
           constraints = MediaStreamConstraints(
             video: MediaTrackConstraintSet(
-                facingMode: facingMode.toJS,
-                width: 1280.toJS,
-                deviceId: ConstrainDOMStringParameters(
-                  ideal: preferredDeviceId.toJS,
-                )),
+              facingMode: facingMode.toJS,
+              width: 1280.toJS,
+              // deviceId: ConstrainDOMStringParameters(
+              //   ideal: preferredDeviceId.toJS,
+              // ),
+            ),
           );
         }
 
