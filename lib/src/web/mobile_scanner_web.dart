@@ -172,29 +172,21 @@ class MobileScannerWeb extends MobileScannerPlatform {
     try {
       // force video capture
 
-      try {
-        final JSMap holo = JSMap();
-        holo.set("name".toJS, "camera".toJS);
-
-        final PermissionStatus result =
-            await window.navigator.permissions.query({"name": "camera"}.jsify() as JSObject).toDart;
-        print("Permission status before forece");
-        print(result.state.toString());
-      } catch (err) {
-        print("ERROR");
-      }
-
       print("force video capture");
       MediaStream mediaStream =
           await window.navigator.mediaDevices.getUserMedia(MediaStreamConstraints(video: true.toJS)).toDart;
+      print("Initialized");
 
-      final List<MediaStreamTrack>? tracks = mediaStream?.getVideoTracks().toDart;
-      tracks?.forEach((track) => track.stop());
-
-      final PermissionStatus result2 =
-          await window.navigator.permissions.query({"name": "camera"}.jsify() as JSObject).toDart;
-      print("Permission status after forece");
-      print(result2.state.toString());
+      try {
+        final List<MediaStreamTrack>? tracks = mediaStream?.getVideoTracks().toDart;
+        tracks?.forEach((track) {
+          if (track.readyState == 'live') {
+            track.stop();
+          }
+        });
+      } catch (e) {
+        print('Failed to stop stream: $e');
+      }
 
       String preferredDeviceId = "";
       try {
