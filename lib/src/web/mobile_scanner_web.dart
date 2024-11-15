@@ -170,12 +170,31 @@ class MobileScannerWeb extends MobileScannerPlatform {
     }
 
     try {
-      // TODO maybe do this step only when permission check returns null
+      // force video capture
+
+      try {
+        final JSMap holo = JSMap();
+        holo.set("name".toJS, "camera".toJS);
+
+        final PermissionStatus result =
+            await window.navigator.permissions.query({"name": "camera"}.jsify() as JSObject).toDart;
+        print("Permission status before forece");
+        print(result.state.toString());
+      } catch (err) {
+        print("ERROR");
+      }
+
+      print("force video capture");
       MediaStream mediaStream =
           await window.navigator.mediaDevices.getUserMedia(MediaStreamConstraints(video: true.toJS)).toDart;
 
       final List<MediaStreamTrack>? tracks = mediaStream?.getVideoTracks().toDart;
       tracks?.forEach((track) => track.stop());
+
+      final PermissionStatus result2 =
+          await window.navigator.permissions.query({"name": "camera"}.jsify() as JSObject).toDart;
+      print("Permission status after forece");
+      print(result2.state.toString());
 
       String preferredDeviceId = "";
       try {
@@ -185,13 +204,19 @@ class MobileScannerWeb extends MobileScannerPlatform {
         // The ONLY consistent way I've found to choose an environment-facing "normal" camera in 100% of cases is to call enumerateDevices and choose the LAST item.
         // Now that is not coded into the spec at all, but in all of my testing (over almost 80 different devices) that is ALWAYS the environment-facing "normal" camera.
         // As always your results may vary.
+        for (final device in availableDeviceDart) {
+          print("device LABEL");
+          print(device.label);
+          print(device.kind);
+        }
 
         preferredDeviceId =
             availableDeviceDart.where((element) => element.kind == "videoinput").last.deviceId as String;
       } catch (err) {
         preferredDeviceId = "";
       }
-
+      print("preferredDeviceId");
+      print(preferredDeviceId);
       // Check if browser supports multiple camera's and set if supported
       final MediaTrackSupportedConstraints capabilities = window.navigator.mediaDevices.getSupportedConstraints();
       MediaStream? localStream;
@@ -222,11 +247,14 @@ class MobileScannerWeb extends MobileScannerPlatform {
         }
 
         try {
+          print("TRY constartms with params");
           localStream = await window.navigator.mediaDevices.getUserMedia(constraints).toDart;
         } catch (err) {
+          print("TRY with default constranins");
           localStream = await window.navigator.mediaDevices.getUserMedia(defaultConstraints).toDart;
         }
       } else {
+        print("TRY fallback only video");
         localStream = await window.navigator.mediaDevices.getUserMedia(MediaStreamConstraints(video: true.toJS)).toDart;
       }
       return localStream;
