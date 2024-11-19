@@ -208,8 +208,8 @@ class MobileScannerWeb extends MobileScannerPlatform {
           ),
         );
 
-        final MediaStreamConstraints constraints = defaultConstraints;
-
+        // final MediaStreamConstraints constraints = defaultConstraints;
+        //
         // if (preferredDeviceId.isNotEmpty) {
         //   constraints = MediaStreamConstraints(
         //     video: MediaTrackConstraintSet(
@@ -221,6 +221,13 @@ class MobileScannerWeb extends MobileScannerPlatform {
         //     ),
         //   );
         // }
+
+        final MediaStreamConstraints constraints = MediaStreamConstraints(
+          video: MediaTrackConstraintSet(
+            facingMode: facingMode.toJS,
+            width: 1280.toJS,
+          ),
+        );
 
         try {
           localStream = await window.navigator.mediaDevices.getUserMedia(constraints).toDart;
