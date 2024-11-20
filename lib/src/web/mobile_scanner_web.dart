@@ -204,7 +204,7 @@ class MobileScannerWeb extends MobileScannerPlatform {
         preferredDeviceId =
             availableDevices.firstWhereOrNull((element) => deviceNames.contains(element.label))?.deviceId;
 
-        if (preferredDeviceId != null && preferredDeviceId.isNotEmpty) {
+        if (preferredDeviceId == null || preferredDeviceId.isEmpty) {
           preferredDeviceId = availableDeviceDart.last.deviceId;
         } else {
           print("FOUND DEVICE BASED ON LAEL");
