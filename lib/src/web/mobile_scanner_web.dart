@@ -17,7 +17,7 @@ import 'package:mobile_scanner/src/web/barcode_reader.dart';
 import 'package:mobile_scanner/src/web/media_track_extension.dart';
 import 'package:mobile_scanner/src/web/zxing/zxing_barcode_reader.dart';
 import 'package:web/web.dart';
-import 'package:mobile_scanner/src/web/javascript_map.dart';
+import 'package:collection/collection.dart';
 
 /// A web implementation of the MobileScannerPlatform of the MobileScanner plugin.
 class MobileScannerWeb extends MobileScannerPlatform {
@@ -177,7 +177,7 @@ class MobileScannerWeb extends MobileScannerPlatform {
       final List<MediaStreamTrack>? tracks = mediaStream?.getVideoTracks().toDart;
       tracks?.forEach((track) => track.stop());
 
-      String preferredDeviceId = "";
+      String? preferredDeviceId;
       try {
         final availableDeviceJs = await window.navigator.mediaDevices.enumerateDevices().toDart;
         final List<MediaDeviceInfo> availableDeviceDart = availableDeviceJs.toDart;
@@ -192,8 +192,23 @@ class MobileScannerWeb extends MobileScannerPlatform {
           print(device.kind);
         }
 
+        final List<String> deviceNames = [
+          'Hátoldali kamera',
+          'Zadná kamera',
+          'Back Camera',
+        ];
+
+        final List<MediaDeviceInfo> availableDevices =
+            availableDeviceDart.where((element) => element.kind == "videoinput").toList();
+
         preferredDeviceId =
-            availableDeviceDart.where((element) => element.kind == "videoinput").last.deviceId as String;
+            availableDevices.firstWhereOrNull((element) => deviceNames.contains(element.label))?.deviceId;
+
+        if (preferredDeviceId != null && preferredDeviceId.isNotEmpty) {
+          preferredDeviceId = availableDeviceDart.last.deviceId;
+        } else {
+          print("FOUND DEVICE BASED ON LAEL");
+        }
       } catch (err) {
         preferredDeviceId = "";
       }
@@ -216,7 +231,7 @@ class MobileScannerWeb extends MobileScannerPlatform {
 
         MediaStreamConstraints constraints = defaultConstraints;
 
-        if (preferredDeviceId.isNotEmpty) {
+        if (preferredDeviceId != null && preferredDeviceId.isNotEmpty) {
           constraints = MediaStreamConstraints(
             video: MediaTrackConstraintSet(
               facingMode: facingMode.toJS,
