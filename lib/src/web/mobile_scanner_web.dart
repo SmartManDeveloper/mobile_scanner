@@ -198,14 +198,14 @@ class MobileScannerWeb extends MobileScannerPlatform {
           'Back Camera',
         ];
 
-        final List<MediaDeviceInfo> availableDevices =
+        final List<MediaDeviceInfo> filteredDevices =
             availableDeviceDart.where((element) => element.kind == "videoinput").toList();
 
         preferredDeviceId =
-            availableDevices.firstWhereOrNull((element) => deviceNames.contains(element.label))?.deviceId;
+            filteredDevices.firstWhereOrNull((element) => deviceNames.contains(element.label))?.deviceId;
 
         if (preferredDeviceId == null || preferredDeviceId.isEmpty) {
-          preferredDeviceId = availableDeviceDart.last.deviceId;
+          preferredDeviceId = filteredDevices.last.deviceId;
         } else {
           print("FOUND DEVICE BASED ON LAEL");
         }
