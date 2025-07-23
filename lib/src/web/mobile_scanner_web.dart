@@ -172,6 +172,9 @@ class MobileScannerWeb extends MobileScannerPlatform {
       try {
         final availableDeviceJs = await window.navigator.mediaDevices.enumerateDevices().toDart;
         final List<MediaDeviceInfo> availableDeviceDart = availableDeviceJs.toDart;
+        availableDeviceDart.forEach((device) {
+          print('Device: kind=${device.kind}, label=${device.label}, id=${device.deviceId}');
+        });
 
         final List<String> deviceNames = ['Hátoldali kamera', 'Zadná kamera', 'Back Camera'];
 
