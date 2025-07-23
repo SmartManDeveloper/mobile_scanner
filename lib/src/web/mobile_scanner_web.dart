@@ -173,22 +173,36 @@ class MobileScannerWeb extends MobileScannerPlatform {
         final availableDeviceJs = await window.navigator.mediaDevices.enumerateDevices().toDart;
         final List<MediaDeviceInfo> availableDeviceDart = availableDeviceJs.toDart;
         availableDeviceDart.forEach((device) {
-          print('Device: kind=${device.kind}, label=${device.label}, id=${device.deviceId}');
+          debugPrint('Device: kind=${device.kind}, label=${device.label}, id=${device.deviceId}');
         });
-
-        final List<String> deviceNames = ['Hátoldali kamera', 'Zadná kamera', 'Back Camera'];
 
         final List<MediaDeviceInfo> filteredDevices =
             availableDeviceDart.where((element) => element.kind == "videoinput").toList();
 
         if (cameraDirection == CameraFacing.back) {
-          preferredDeviceId =
-              filteredDevices.firstWhereOrNull((element) => deviceNames.contains(element.label))?.deviceId;
+          final backCameras =
+              filteredDevices
+                  .where(
+                    (element) =>
+                        element.label.toLowerCase().contains('back') || element.label.toLowerCase().contains('rear'),
+                  )
+                  .toList();
 
-          if (preferredDeviceId == null || preferredDeviceId.isEmpty) {
-            preferredDeviceId = filteredDevices.last.deviceId;
-          }
+          backCameras.sort((a, b) {
+            final reg = RegExp(r'camera2 (\d+)');
+            final aMatch = reg.firstMatch(a.label);
+            final bMatch = reg.firstMatch(b.label);
+            final aIdx = aMatch != null ? int.tryParse(aMatch.group(1)!) ?? 999 : 999;
+            final bIdx = bMatch != null ? int.tryParse(bMatch.group(1)!) ?? 999 : 999;
+            return aIdx.compareTo(bIdx);
+          });
+
+          preferredDeviceId =
+              backCameras.isNotEmpty
+                  ? backCameras.first.deviceId
+                  : (filteredDevices.isNotEmpty ? filteredDevices.first.deviceId : null);
         }
+        debugPrint("preferredDeviceId: $preferredDeviceId");
       } catch (err) {
         preferredDeviceId = "";
       }
