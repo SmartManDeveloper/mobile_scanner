@@ -172,9 +172,9 @@ class MobileScannerWeb extends MobileScannerPlatform {
       try {
         final availableDeviceJs = await window.navigator.mediaDevices.enumerateDevices().toDart;
         final List<MediaDeviceInfo> availableDeviceDart = availableDeviceJs.toDart;
-        availableDeviceDart.forEach((device) {
-          debugPrint('Device: kind=${device.kind}, label=${device.label}, id=${device.deviceId}');
-        });
+        // availableDeviceDart.forEach((device) {
+        //   debugPrint('Device: kind=${device.kind}, label=${device.label}, id=${device.deviceId}');
+        // });
 
         final List<MediaDeviceInfo> filteredDevices =
             availableDeviceDart.where((element) => element.kind == "videoinput").toList();
@@ -188,21 +188,40 @@ class MobileScannerWeb extends MobileScannerPlatform {
                   )
                   .toList();
 
-          backCameras.sort((a, b) {
-            final reg = RegExp(r'camera2 (\d+)');
-            final aMatch = reg.firstMatch(a.label);
-            final bMatch = reg.firstMatch(b.label);
-            final aIdx = aMatch != null ? int.tryParse(aMatch.group(1)!) ?? 999 : 999;
-            final bIdx = bMatch != null ? int.tryParse(bMatch.group(1)!) ?? 999 : 999;
-            return aIdx.compareTo(bIdx);
-          });
+          if (backCameras.isNotEmpty) {
+            backCameras.sort((a, b) {
+              final regexPatterns = [RegExp(r'camera2 (\d+)'), RegExp(r'camera (\d+)'), RegExp(r'(\d+)')];
 
-          preferredDeviceId =
-              backCameras.isNotEmpty
-                  ? backCameras.first.deviceId
-                  : (filteredDevices.isNotEmpty ? filteredDevices.first.deviceId : null);
+              int aIdx = 999;
+              int bIdx = 999;
+
+              for (final regex in regexPatterns) {
+                final aMatch = regex.firstMatch(a.label);
+                final bMatch = regex.firstMatch(b.label);
+
+                if (aMatch != null && bMatch != null) {
+                  aIdx = int.tryParse(aMatch.group(1)!) ?? 999;
+                  bIdx = int.tryParse(bMatch.group(1)!) ?? 999;
+                  break;
+                }
+              }
+
+              return aIdx.compareTo(bIdx);
+            });
+
+            preferredDeviceId = backCameras.first.deviceId;
+          } else {
+            final List<String> deviceNames = ['Hátoldali kamera', 'Zadná kamera', 'Back Camera'];
+
+            preferredDeviceId =
+                filteredDevices.firstWhereOrNull((element) => deviceNames.contains(element.label))?.deviceId;
+
+            if (preferredDeviceId == null || preferredDeviceId.isEmpty) {
+              preferredDeviceId = filteredDevices.isNotEmpty ? filteredDevices.first.deviceId : null;
+            }
+          }
         }
-        debugPrint("preferredDeviceId: $preferredDeviceId");
+        // debugPrint("preferredDeviceId: $preferredDeviceId");
       } catch (err) {
         preferredDeviceId = "";
       }
