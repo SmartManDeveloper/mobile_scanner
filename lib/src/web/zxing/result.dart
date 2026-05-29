@@ -13,7 +13,7 @@ import 'package:mobile_scanner/src/web/zxing/result_point.dart';
 /// See also: https://github.com/zxing-js/library/blob/master/src/core/Result.ts
 @JS()
 extension type Result(JSObject _) implements JSObject {
-  @JS('barcodeFormat')
+  @JS('format')
   external int? get _barcodeFormat;
 
   /// Get the text of the result.
