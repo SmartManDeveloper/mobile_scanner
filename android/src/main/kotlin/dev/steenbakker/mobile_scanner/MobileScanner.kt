@@ -583,6 +583,9 @@ class MobileScanner(
         // The camera will be closed when the last use case is unbound.
         cameraProvider?.unbindAll()
         imageAnalysis = null
+        camera = null
+        preview = null
+        cameraSelector = null
 
         // Release the surface for the preview.
         surfaceProducer?.release()
